@@ -1,19 +1,15 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
-import { generarTokenManual } from "../../../infraestructura/generate";
 
 const prisma = new PrismaClient();
 
 export const GetToken = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { IP, MASIVO, MIXTO } = req.query;
+    const { MASIVO, MIXTO } = req.query;
     const isMasivo = MASIVO === "true";
     const isMixto = MIXTO === "true";
 
     const tokensDisponibles = await prisma.token.findMany({
-      where: {
-        estado: true,
-      },
       orderBy: {
         createdAt: "desc",
       },
@@ -38,20 +34,12 @@ export const GetToken = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const tokenATomar = tokensDisponibles[0];
-
-    await prisma.token.update({
-      where: {
-        id: tokenATomar.id,
-      },
-      data: {
-        estado: false,
-      },
-    });
+    const randomIndex = Math.floor(Math.random() * tokensDisponibles.length);
+    const tokenAleatorio = tokensDisponibles[randomIndex];
 
     const dataConNumeroSeguro = {
-      ...tokenATomar,
-      numero: tokenATomar.numero ?? "",
+      ...tokenAleatorio,
+      numero: tokenAleatorio.numero ?? "",
     };
 
     res.status(200).json({
